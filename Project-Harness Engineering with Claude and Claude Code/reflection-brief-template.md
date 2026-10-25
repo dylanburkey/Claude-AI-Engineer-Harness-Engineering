@@ -10,7 +10,7 @@ Replace each `→` with your answer. **Every answer cites at least one artifact 
 - Model(s): `claude-haiku-4-5-20251001` (System 1 claims agent, System 2 compression + evals); `claude-sonnet-4-6` (System 4 live shift); System 3 makes no model calls. All live calls went through the Vocareum proxy (`ANTHROPIC_BASE_URL=https://claude.vocareum.com`), which served exactly the requested model on every call (logged per call in `evidence/system-{1,2,4}/live/usage.jsonl`).
 - OS / Python: macOS (Darwin 25.5.0) / Python 3.15.1, one `uv`-managed venv per system
 - Approx. API spend: **≈ $0.36** for the final live pass of all four systems (41 calls, 301,295 input / 8,773 output tokens: System 1 $0.130, System 2 $0.208, System 4 $0.020, System 3 $0.00). Including earlier System 1 runs, ≈ $0.50 total.
-
+- Tools Used: Claude Code / Claude
 **Test results (all four):** System 1 30 passed · System 2 30 passed · System 3 35 passed · System 4 33 passed (`evidence/system-N/pytest.log`).
 
 ---
