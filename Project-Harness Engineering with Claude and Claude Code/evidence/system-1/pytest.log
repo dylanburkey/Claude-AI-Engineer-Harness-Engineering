@@ -1,14 +1,40 @@
 ============================= test session starts ==============================
-platform darwin -- Python 3.15.1, pytest-9.1.1, pluggy-1.7.0
+platform darwin -- Python 3.15.1, pytest-9.1.1, pluggy-1.7.0 -- /Users/dylanburkey/dev/cd15315-Claude-AI-Engineer-Harness-Engineering/Build a Claims Intake Agent with a stop_reason-Driven Loop/exercises/03-dynamic-decomposition/solution/.venv/bin/python
+cachedir: .pytest_cache
 rootdir: /Users/dylanburkey/dev/cd15315-Claude-AI-Engineer-Harness-Engineering/Build a Claims Intake Agent with a stop_reason-Driven Loop/exercises/03-dynamic-decomposition/solution
 configfile: pyproject.toml
 plugins: anyio-4.15.1
-collected 30 items
+collecting ... collected 30 items
 
-tests/test_antipatterns.py ....                                          [ 13%]
-tests/test_fixtures.py ........                                          [ 40%]
-tests/test_loop.py .....                                                 [ 56%]
-tests/test_run_backstop.py .                                             [ 60%]
-tests/test_tools.py ............                                         [100%]
+tests/test_antipatterns.py::test_no_string_membership_against_text_in_loop PASSED [  3%]
+tests/test_antipatterns.py::test_no_integer_literal_iteration_cap_in_loop PASSED [  6%]
+tests/test_antipatterns.py::test_stop_reason_is_loop_control PASSED      [ 10%]
+tests/test_antipatterns.py::test_no_claim_type_equality_branching_in_package PASSED [ 13%]
+tests/test_fixtures.py::test_policies_file_loads_and_covers_all_claim_types PASSED [ 16%]
+tests/test_fixtures.py::test_eight_fixtures_exist PASSED                 [ 20%]
+tests/test_fixtures.py::test_every_fixture_references_a_known_policy PASSED [ 23%]
+tests/test_fixtures.py::test_fixture_outcome_distribution_meets_targets PASSED [ 26%]
+tests/test_fixtures.py::test_routed_fixtures_cover_all_four_types_and_all_severities PASSED [ 30%]
+tests/test_fixtures.py::test_fixture_schemas_are_consistent PASSED       [ 33%]
+tests/test_fixtures.py::test_ambiguous_fixtures_have_clarification_scripts PASSED [ 36%]
+tests/test_fixtures.py::test_claim_06_is_the_escalation_fixture PASSED   [ 40%]
+tests/test_loop.py::test_loop_terminates_on_end_turn PASSED              [ 43%]
+tests/test_loop.py::test_loop_continues_on_tool_use PASSED               [ 46%]
+tests/test_loop.py::test_loop_handles_multiple_tool_use_blocks_in_one_turn PASSED [ 50%]
+tests/test_loop.py::test_loop_raises_on_unexpected_stop_reason PASSED    [ 53%]
+tests/test_loop.py::test_budget_raises_when_token_cap_exceeded PASSED    [ 56%]
+tests/test_run_backstop.py::test_claim_without_terminal_tool_is_escalated PASSED [ 60%]
+tests/test_tools.py::test_seven_tools_registered_with_schemas PASSED     [ 63%]
+tests/test_tools.py::test_categorical_fields_use_enums PASSED            [ 66%]
+tests/test_tools.py::test_lookup_policy_returns_record PASSED            [ 70%]
+tests/test_tools.py::test_lookup_policy_unknown_id_returns_graceful_error PASSED [ 73%]
+tests/test_tools.py::test_unknown_tool_returns_graceful_error PASSED     [ 76%]
+tests/test_tools.py::test_request_clarification_returns_scripted_reply PASSED [ 80%]
+tests/test_tools.py::test_request_clarification_no_response_when_unscripted PASSED [ 83%]
+tests/test_tools.py::test_routing_requires_classification_and_severity PASSED [ 86%]
+tests/test_tools.py::test_routing_writes_jsonl_and_marks_terminal PASSED [ 90%]
+tests/test_tools.py::test_escalation_writes_jsonl_and_marks_terminal PASSED [ 93%]
+tests/test_tools.py::test_double_terminal_is_graceful_error PASSED       [ 96%]
+tests/test_tools.py::test_handler_exception_is_caught_as_transient_error PASSED [100%]
 
 ============================== 30 passed in 0.16s ==============================
