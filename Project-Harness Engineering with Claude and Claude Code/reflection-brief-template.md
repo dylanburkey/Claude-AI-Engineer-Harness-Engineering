@@ -227,6 +227,8 @@ Replace each `→` with your answer. **Every answer cites at least one artifact 
 
     It's enforced twice: `_trim_to_budget` (`pipeline.py:74`) drops alerts, and `write_atomic` raises if the state is still over budget. A small payload also keeps the write-to-temp, flush, rename sequence fast. One gap: only alerts are trimmed, so an oversized summary would fail the write.
 
+    **Forked investigations reuse this small state without touching it.** `shift_monitor/fork.py` gives each hypothesis a *copy* of the base `hot_state.json`: `fork_for_hypothesis` copies it with `shutil.copyfile` into a private folder, `data/forks/<hypothesis_id>/` (`fork.py:22-25`). The fork writes only inside that folder, to its own copy and its own `scratchpad.jsonl`, so the main hot state is read once and never written. My run confirmed it: after forking `H1-lot-dielectric` and `H2-thermal-cycling`, `evidence/system-4/fork.log` records `base hot_state unchanged: True`, based on SHA-256 hashes of the base file taken before and after. Findings come back only through `merge_findings` (`fork.py:29-35`), which appends each fork's scratchpad entries to the main scratchpad without rewriting existing lines (`main scratchpad entries: 2 -> 4` in the same log). The forks' copied hot states are never merged back, so a wrong hypothesis can add evidence but can't overwrite live alerts or thresholds.
+
 ---
 
 ## Part 2 — Synthesis
@@ -234,11 +236,28 @@ Replace each `→` with your answer. **Every answer cites at least one artifact 
 *Graded on connecting two or more systems. Cite a named file/artifact from each.*
 
 14. **Three layers.** Point to a file/artifact for each layer and justify.
-    → **Model — System 1, `runs/20261025_133325/traces/`.** The traces record what the model chose on each turn: which tools to call, with what arguments, and when to emit `end_turn`. `claim_03_water_damage` used 6 turns including a clarifying question, while `claim_01_kitchen_fire` stopped after 2. That's the model layer: judgment, and in this run, inconsistent judgment (5 of 8 claims correct).
+    → **Model — System 1, `claims_intake/client.py`, with `system_prompt.py` and `tools.py`; evidence in `runs/20261025_133325/traces/`.** `client.py` names the model: `DEFAULT_MODEL = "claude-haiku-4-5-20251001"` (`client.py:19`), with `make_client()` (`client.py:8`) building the Anthropic client that `loop.py:72` calls with `client.messages.create`. Everything the model sees is defined in two other files: its instructions in `SYSTEM_PROMPT` (`system_prompt.py:8`) and its tools in `TOOL_SCHEMAS` (`tools.py:30`). The model layer is the one component that takes those inputs and returns choices. The traces record what it chose on each turn: which tools to call, with what arguments, and when to emit `end_turn`. `claim_03_water_damage` used 6 turns including a clarifying question, while `claim_01_kitchen_fire` stopped after 2. That's the model layer: judgment, and in this run, inconsistent judgment (5 of 8 claims correct).
 
     → **Harness — System 1, `claims_intake/loop.py` + `run.py`.** The harness controls one model session. It loops only on `stop_reason`, raises on unexpected stop reasons, enforces the token and wall-clock `Budget`, and returns tool errors as `is_error` results. It also caught the model's gaps: `runs/20261025_133325/escalations.jsonl` records `"model ended its turn without a terminal action (deterministic backstop)"` for claims 01, 02, 04 and 06, so no claim was left without a decision. Even claim 06's "correct" escalation came from the backstop, not from the model calling `escalate_to_human`.
 
-    → **Orchestration — System 4, `shift_monitor/pipeline.py` + `recovery.py`.** Orchestration works across sessions. It decides when Claude runs (once per 8-hour shift), what it receives (17 of 40 rows plus a 965-byte hot state), and what persists afterward (atomic hot-state write, scratchpad append, fork and merge in `evidence/system-4/fork.log`). `recovery.decide` handles crashes with a 30-minute threshold.
+    → **Orchestration — System 4, `shift_monitor/pipeline.py` + `recovery.py`.** Orchestration works across sessions. It decides when Claude runs (once per 8-hour shift), what it receives (17 of 40 rows plus a 965-byte hot state), and what persists afterward (atomic hot-state write, scratchpad append). `recovery.decide` handles crashes with a 30-minute threshold.
+
+    **How `fork.py` keeps a forked investigation isolated.** `shift_monitor/fork.py` lets the system explore competing explanations without any of them touching the shared state. I ran two hypotheses for the capacitor-bank defects, `H1-lot-dielectric` and `H2-thermal-cycling`, and recorded the result in `evidence/system-4/fork.log`:
+
+    ```
+    fork H1-lot-dielectric: data/forks/H1-lot-dielectric entries=1
+    fork H2-thermal-cycling: data/forks/H2-thermal-cycling entries=1
+    base hot_state unchanged: True
+    main scratchpad entries: 2 -> 4
+    ```
+
+    Isolation comes from four mechanisms:
+    - **A private directory per hypothesis.** `fork_for_hypothesis` creates `forks_root / hypothesis_id` (`fork.py:22-23`), so each investigation writes only inside its own folder.
+    - **A copy of the state, never the original.** It copies the base hot state into that folder with `shutil.copyfile` (`fork.py:25`). The fork works from its own `hot_state.json`, and the base file is only ever read. `fork.log` confirms it: `base hot_state unchanged: True`, checked by comparing SHA-256 hashes of the base file before and after both forks ran. Both forks also started from the same baseline: the two copied `hot_state.json` files in `evidence/system-4/forks/` are byte-identical (965 bytes each).
+    - **A separate scratchpad per fork.** Each fork appends findings to its own `scratchpad.jsonl`, and each ended with exactly one entry (`entries=1`). So neither hypothesis saw the other's evidence or conclusion.
+    - **One controlled path back.** `merge_findings` (`fork.py:29-35`) is the only way results reach the main state. It reads each fork's scratchpad and re-appends every entry through `Scratchpad.append`, which writes and flushes one line at a time and never rewrites existing lines. The main scratchpad went from 2 to 4 entries, keeping the 2 earlier shift entries intact. The forks' copied hot states are never merged back: only their findings return, so a wrong hypothesis can't overwrite live alerts or thresholds.
+
+    The suite pins all of this (33/33 passed): `test_fork_for_hypothesis_copies_state_without_mutating_base`, `test_two_forks_produce_independent_scratchpads` and `test_merge_findings_appends_without_rewriting_existing` (`tests/test_us04_fork_scratchpad.py`). One limit: the isolation is by convention, not enforcement. Nothing stops code from opening the base path directly. Re-forking an existing `hypothesis_id` also reuses its folder (`mkdir(..., exist_ok=True)`) and keeps any old scratchpad, so a fork ID should be used once.
 
     **How they connect:** each layer limits the one below it. System 1's harness turns the model's choices into a guaranteed outcome per claim. System 4's orchestration does the same across sessions. Its single `client.complete` call per shift is where a System 1-style harness should sit, and the live run shows what happens without one: the response hit `max_tokens` (1,024 output tokens, `evidence/system-4/live/usage.jsonl`) and nothing checked `stop_reason`.
 
