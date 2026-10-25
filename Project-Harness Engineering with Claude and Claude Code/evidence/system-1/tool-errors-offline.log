@@ -1,0 +1,4 @@
+route before classify          {"is_error": true, "error_category": "permanent", "is_retryable": false, "message": "classify_claim must be called before routing"}
+lookup typo'd policy           {"is_error": true, "error_category": "permanent", "is_retryable": false, "message": "policy_id 'POL-10O1' not found"}
+route after classify+assess    {"routed": true, "queue": "property_damage"}
+escalate after routing         {"is_error": true, "error_category": "permanent", "is_retryable": false, "message": "terminal tool already called this claim"}

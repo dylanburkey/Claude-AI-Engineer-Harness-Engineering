@@ -1,0 +1,19 @@
+run_dir: /Users/dylanburkey/dev/cd15315-Claude-AI-Engineer-Harness-Engineering/Build a Claims Intake Agent with a stop_reason-Driven Loop/exercises/03-dynamic-decomposition/solution/runs/20261025_133325
+[claim_01_kitchen_fire] policy=POL-1001 expected=routed
+  → outcome=escalated turns=2 clarifications=0 tokens=6277/449 est=$0.0085
+[claim_02_stolen_bike] policy=POL-1007 expected=routed
+  → outcome=escalated turns=2 clarifications=0 tokens=6160/469 est=$0.0085
+[claim_03_water_damage] policy=POL-1004 expected=routed
+  → outcome=routed turns=6 clarifications=1 tokens=21694/1163 est=$0.0275
+[claim_04_neighbor_injury] policy=POL-1002 expected=routed
+  → outcome=escalated turns=2 clarifications=0 tokens=6174/468 est=$0.0085
+[claim_05_auto_collision] policy=POL-1003 expected=routed
+  → outcome=routed turns=5 clarifications=0 tokens=18736/927 est=$0.0234
+[claim_06_low_confidence_escalation] policy=POL-1008 expected=escalated
+  → outcome=escalated turns=4 clarifications=1 tokens=13728/726 est=$0.0174
+[claim_07_tree_falls_on_car] policy=POL-1005 expected=routed
+  → outcome=routed turns=4 clarifications=0 tokens=14068/763 est=$0.0179
+[claim_08_minor_porch_damage] policy=POL-1006 expected=routed
+  → outcome=routed turns=4 clarifications=0 tokens=14416/832 est=$0.0186
+summary: /Users/dylanburkey/dev/cd15315-Claude-AI-Engineer-Harness-Engineering/Build a Claims Intake Agent with a stop_reason-Driven Loop/exercises/03-dynamic-decomposition/solution/runs/20261025_133325/summary.md
+total estimated cost: $0.1302

@@ -1,0 +1,4 @@
+fork H1-lot-dielectric: data/forks/H1-lot-dielectric entries=1
+fork H2-thermal-cycling: data/forks/H2-thermal-cycling entries=1
+base hot_state unchanged: True
+main scratchpad entries: 2 -> 4
